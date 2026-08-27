@@ -1,0 +1,23 @@
+name: Validate Observability Reference Project
+
+on:
+  push:
+    paths:
+      - 'projects/enterprise-observability-platform/**'
+      - '.github/workflows/validate-observability-project.yml'
+  pull_request:
+    paths:
+      - 'projects/enterprise-observability-platform/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate SLO model and budget calculation
+        run: |
+          python projects/enterprise-observability-platform/scripts/slo_budget.py \
+            projects/enterprise-observability-platform/models/slo.json
