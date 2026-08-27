@@ -4,25 +4,23 @@
 [![BGP](https://img.shields.io/badge/Control%20Plane-BGP%20EVPN-4B8BBE)](#)
 [![Status](https://img.shields.io/badge/Status-Vendor--Neutral%20Reference-success)](#)
 
-A vendor-neutral reference design for a modern **leaf-spine data-center fabric using BGP EVPN as the control plane and VXLAN as the overlay encapsulation**.
+A vendor-neutral reference design for a modern **leaf-spine data-center fabric using BGP EVPN as the control plane and VXLAN as the overlay encapsulation**, extended with observability and enterprise backup/DR reference projects.
 
-The project focuses on architecture decisions, addressing, failure domains, route types, tenant segmentation, operational validation and a reusable data model rather than presenting vendor-specific CLI as if it were universally portable.
-
-> **Important:** This is a reference architecture/lab. Hardware scale, feature support, timers, route-target behavior, multihoming implementation and syntax must be validated against the selected network operating system and software release.
+> **Important:** These are reference architectures/labs. Hardware scale, feature support, timers, route-target behavior, multihoming, backup products, retention and recovery targets must be validated for the selected environment.
 
 ## Why EVPN-VXLAN
 
-Traditional large Layer-2 domains can create operational and scaling constraints. EVPN-VXLAN allows the physical underlay to remain a routed IP fabric while virtual network segments are extended through an overlay.
+EVPN-VXLAN allows the physical underlay to remain a routed IP fabric while tenant segments are delivered through an overlay.
 
 Key architecture properties:
 
 - Layer-3 leaf-spine underlay with ECMP;
 - predictable east-west topology;
-- VXLAN VNIs for tenant/segment separation;
-- BGP EVPN for endpoint and reachability distribution;
-- support for distributed anycast gateway patterns;
-- reduced dependence on spanning tree inside the fabric;
-- scalable addition of leaf/compute racks when capacity grows.
+- VXLAN VNIs for segment separation;
+- BGP EVPN for endpoint/reachability distribution;
+- distributed anycast gateway patterns;
+- reduced dependence on spanning tree;
+- scalable addition of leaf/compute racks.
 
 ## Reference topology
 
@@ -38,58 +36,54 @@ flowchart TB
   SP2 --- L4
 
   L1 --- S1[Servers / Hypervisors]
-  L2 --- S2[Servers / Kubernetes]
+  L2 --- S2[Kubernetes]
   L3 --- S3[Storage / Services]
   L4 --- BORDER[Border / Service Connectivity]
-
   BORDER --- FW[Firewall / Security Services]
-  BORDER --- WAN[WAN / Campus / Internet / Cloud]
-
+  BORDER --- WAN[WAN / Campus / Cloud]
   OOB[Separate OOB Management] -.-> SP1
   OOB -.-> SP2
-  OOB -.-> L1
-  OOB -.-> L2
-  OOB -.-> L3
-  OOB -.-> L4
 ```
 
 ## Architecture layers
 
 ### Underlay
 
-The underlay provides IP reachability between loopbacks/VTEPs. The reference design assumes:
-
-- point-to-point routed leaf-spine links;
-- ECMP across both spines;
-- dedicated loopbacks for routing identity/VTEP use;
-- an IGP or eBGP underlay depending on design preference;
-- consistent MTU large enough for VXLAN overhead;
+- routed point-to-point leaf-spine links;
+- ECMP across spines;
+- dedicated loopbacks for routing/VTEPs;
+- IGP or eBGP underlay depending on design;
+- MTU sized for VXLAN overhead;
 - no tenant VLAN stretched through the physical underlay.
 
 ### Overlay
 
-The overlay uses MP-BGP EVPN to distribute reachability. Concepts demonstrated in this repository include:
-
-- Layer-2 VNI mapping;
-- Layer-3 VNI / tenant VRF mapping;
+- MP-BGP EVPN;
+- L2 VNI mapping;
+- L3 VNI / tenant VRF mapping;
 - route distinguishers and route targets;
 - distributed anycast gateway;
-- EVPN MAC/IP advertisement concepts;
-- IP-prefix advertisement for routed tenant connectivity.
+- MAC/IP and prefix reachability distribution.
 
-## Example addressing plan
+## Example addressing
 
 | Function | Example |
 |---|---|
 | Spine loopbacks | `10.255.0.1/32` – `10.255.0.2/32` |
 | Leaf loopbacks | `10.255.1.1/32` onward |
-| P2P fabric links | `10.0.0.0/31`, sequential /31s |
-| Tenant A VLAN/VNI | VLAN 110 / VNI 10110 |
-| Tenant B VLAN/VNI | VLAN 120 / VNI 10120 |
+| P2P fabric links | sequential `/31` networks |
+| Tenant A | VLAN 110 / VNI 10110 |
+| Tenant B | VLAN 120 / VNI 10120 |
 | Tenant A L3 VNI | VNI 50001 |
 | Tenant B L3 VNI | VNI 50002 |
 
-All values are lab examples and should be allocated from a controlled IP/VLAN/VNI plan.
+## Portfolio projects in this repository
+
+### [Enterprise Observability Platform](projects/enterprise-observability-platform)
+Metrics, logs, traces, events, telemetry pipelines, alerting, SLI/SLO and error-budget modeling with machine-readable SLO data and deterministic validation.
+
+### [Enterprise Backup & Disaster Recovery](projects/enterprise-backup-dr)
+Policy-driven backup architecture covering VM, database, Kubernetes and cloud workloads; primary/secondary repositories, immutable copies, isolated recovery, restore testing and machine-validated backup policy.
 
 ## Repository structure
 
@@ -98,22 +92,13 @@ All values are lab examples and should be allocated from a controlled IP/VLAN/VN
 ├── README.md
 ├── diagrams/fabric.mmd
 ├── docs/
-│   ├── design-principles.md
-│   ├── evpn-control-plane.md
-│   └── validation-plan.md
-├── models/
-│   └── fabric-intent.yaml
+├── models/fabric-intent.yaml
+├── scripts/validate_fabric_intent.py
 ├── projects/
-│   └── enterprise-observability-platform/
+│   ├── enterprise-observability-platform/
+│   └── enterprise-backup-dr/
 └── .github/workflows/
-    ├── validate.yml
-    └── validate-observability-project.yml
 ```
-
-## Enterprise observability project
-
-### [Enterprise Observability Platform](projects/enterprise-observability-platform)
-A dedicated observability/SRE project covering metrics, logs, traces, events, telemetry pipelines, service context, alerting and SLI/SLO/error-budget calculation. It includes an editable architecture diagram, a machine-readable SLO model, a deterministic error-budget calculator and CI validation.
 
 ## Key design decisions
 
@@ -125,39 +110,41 @@ A dedicated observability/SRE project covering metrics, logs, traces, events, te
 | Encapsulation | VXLAN |
 | Default gateway | Distributed anycast gateway where supported/appropriate |
 | Tenant isolation | VRF + L3 VNI; segments mapped to L2 VNIs |
-| External connectivity | Dedicated border/service leaf role when scale or policy warrants |
-| Management | Physically/logically separate OOB path for device recovery |
+| External connectivity | Border/service leaf role when scale or policy warrants |
+| Management | Separate OOB path for device recovery |
+| Observability | Common telemetry pipeline with service context and actionable alerts |
+| Backup/DR | Independent copies, immutability for critical data and tested restore procedures |
 
 ## Operational validation
 
-A useful fabric lab should prove more than reachability. Validate:
+Validate more than reachability:
 
-1. underlay adjacency and ECMP paths;
+1. underlay adjacency and ECMP;
 2. VTEP loopback reachability;
 3. BGP EVPN neighbor state;
 4. expected MAC/IP route learning;
-5. VNI membership;
-6. same-subnet east-west connectivity;
-7. inter-subnet routing through the intended VRF;
-8. north-south route advertisement/filtering;
-9. single spine/link failure convergence;
-10. leaf or multihoming failure behavior where applicable;
-11. MTU end to end;
-12. telemetry and troubleshooting visibility.
+5. VNI/VRF membership;
+6. east-west and north-south policy;
+7. link/spine failure convergence;
+8. MTU end to end;
+9. telemetry/alert visibility;
+10. backup job success plus actual restore tests;
+11. immutable/secondary recovery-copy health;
+12. documented recovery ownership.
 
 ## Related portfolio projects
 
 - [OpenStack Private Cloud Reference Architecture](https://github.com/DeeSanas/openstack-private-cloud-reference-architecture)
 - [Hybrid Cloud Reference Architecture](https://github.com/DeeSanas/hybrid-cloud-reference-architecture)
-- [Terraform Enterprise Module Library](https://github.com/DeeSanas/terraform-enterprise-module-library)
+- [Infrastructure Automation Library](https://github.com/DeeSanas/terraform-enterprise-module-library)
 
 ## Roadmap
 
-- [x] Vendor-neutral logical architecture
+- [x] Vendor-neutral EVPN-VXLAN architecture
 - [x] EVPN control-plane reference
-- [x] Fabric intent data model
-- [x] Failure/validation plan
-- [x] Enterprise observability/SRE reference project
+- [x] Fabric intent data model and CI validation
+- [x] Enterprise observability/SRE project
+- [x] Enterprise backup/DR project
 - [ ] Add container-based interoperability lab
-- [ ] Add multihoming/ESI design example
+- [ ] Add multihoming/ESI example
 - [ ] Add telemetry dashboard implementation example
