@@ -101,9 +101,19 @@ All values are lab examples and should be allocated from a controlled IP/VLAN/VN
 │   ├── design-principles.md
 │   ├── evpn-control-plane.md
 │   └── validation-plan.md
-└── models/
-    └── fabric-intent.yaml
+├── models/
+│   └── fabric-intent.yaml
+├── projects/
+│   └── enterprise-observability-platform/
+└── .github/workflows/
+    ├── validate.yml
+    └── validate-observability-project.yml
 ```
+
+## Enterprise observability project
+
+### [Enterprise Observability Platform](projects/enterprise-observability-platform)
+A dedicated observability/SRE project covering metrics, logs, traces, events, telemetry pipelines, service context, alerting and SLI/SLO/error-budget calculation. It includes an editable architecture diagram, a machine-readable SLO model, a deterministic error-budget calculator and CI validation.
 
 ## Key design decisions
 
@@ -147,6 +157,7 @@ A useful fabric lab should prove more than reachability. Validate:
 - [x] EVPN control-plane reference
 - [x] Fabric intent data model
 - [x] Failure/validation plan
+- [x] Enterprise observability/SRE reference project
 - [ ] Add container-based interoperability lab
 - [ ] Add multihoming/ESI design example
-- [ ] Add telemetry dashboard example
+- [ ] Add telemetry dashboard implementation example
