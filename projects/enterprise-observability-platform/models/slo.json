@@ -1,0 +1,7 @@
+{
+  "service": "reference-api",
+  "window_days": 30,
+  "availability_target": 0.999,
+  "total_requests": 10000000,
+  "bad_requests": 5000
+}
