@@ -1,0 +1,63 @@
+fabric:
+  name: dc-reference
+  underlay:
+    protocol: ebgp
+    p2p_prefix_length: 31
+    mtu: 9216
+  overlay:
+    protocol: bgp-evpn
+    encapsulation: vxlan
+
+nodes:
+  spines:
+    - name: spine01
+      asn: 65000
+      loopback: 10.255.0.1/32
+    - name: spine02
+      asn: 65000
+      loopback: 10.255.0.2/32
+
+  leaves:
+    - name: leaf01
+      asn: 65101
+      loopback: 10.255.1.1/32
+      vtep: 10.254.1.1/32
+    - name: leaf02
+      asn: 65102
+      loopback: 10.255.1.2/32
+      vtep: 10.254.1.2/32
+    - name: leaf03
+      asn: 65103
+      loopback: 10.255.1.3/32
+      vtep: 10.254.1.3/32
+    - name: border01
+      asn: 65104
+      loopback: 10.255.1.4/32
+      vtep: 10.254.1.4/32
+      role: border
+
+tenants:
+  - name: tenant-a
+    vrf: VRF-A
+    l3_vni: 50001
+    segments:
+      - name: app
+        vlan: 110
+        l2_vni: 10110
+        gateway: 10.110.0.1/24
+      - name: db
+        vlan: 120
+        l2_vni: 10120
+        gateway: 10.120.0.1/24
+
+  - name: tenant-b
+    vrf: VRF-B
+    l3_vni: 50002
+    segments:
+      - name: services
+        vlan: 210
+        l2_vni: 10210
+        gateway: 10.210.0.1/24
+
+# Reference/lab values only. Validate ASN, IP, VLAN, VNI, MTU and platform
+# capabilities before generating or applying device configuration.
