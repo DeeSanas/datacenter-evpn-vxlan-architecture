@@ -1,0 +1,30 @@
+flowchart TB
+    subgraph SRC[Telemetry Sources]
+      APP[Applications]
+      K8S[Kubernetes]
+      NET[Network Fabric]
+      STG[Storage]
+      CLD[Cloud Services]
+    end
+
+    SRC --> COL[Agents / Exporters / OpenTelemetry Collectors]
+    COL --> PROC[Processing / Enrichment / Sampling / Routing]
+
+    PROC --> MET[Metrics Store]
+    PROC --> LOG[Log Store]
+    PROC --> TRC[Trace Store]
+    PROC --> EVT[Event / Audit Store]
+
+    MET --> CORR[Correlation / Service Context]
+    LOG --> CORR
+    TRC --> CORR
+    EVT --> CORR
+
+    CORR --> DASH[Dashboards]
+    CORR --> ALERT[Alerting / Routing]
+    CORR --> SLO[SLI / SLO / Error Budget]
+
+    DASH --> OPS[SRE / NOC / Engineering]
+    ALERT --> OPS
+    SLO --> OPS
+    ALERT --> SOC[SOC / Security Operations]
