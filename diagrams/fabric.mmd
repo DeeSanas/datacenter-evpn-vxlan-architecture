@@ -1,0 +1,24 @@
+flowchart TB
+  SP1[Spine 01] --- L1[Leaf 01 / VTEP]
+  SP1 --- L2[Leaf 02 / VTEP]
+  SP1 --- L3[Leaf 03 / VTEP]
+  SP1 --- L4[Leaf 04 / VTEP]
+  SP2[Spine 02] --- L1
+  SP2 --- L2
+  SP2 --- L3
+  SP2 --- L4
+
+  L1 --- S1[Servers / Hypervisors]
+  L2 --- S2[Servers / Kubernetes]
+  L3 --- S3[Storage / Services]
+  L4 --- BORDER[Border / Service Connectivity]
+
+  BORDER --- FW[Firewall / Security Services]
+  BORDER --- WAN[WAN / Campus / Internet / Cloud]
+
+  OOB[Separate OOB Management] -.-> SP1
+  OOB -.-> SP2
+  OOB -.-> L1
+  OOB -.-> L2
+  OOB -.-> L3
+  OOB -.-> L4
