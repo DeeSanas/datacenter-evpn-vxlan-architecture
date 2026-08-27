@@ -1,0 +1,15 @@
+flowchart LR
+  VM[VM / Hypervisor] --> PROXY[Backup Agents / Proxies]
+  DB[Databases] --> PROXY
+  K8S[Kubernetes] --> PROXY
+  CLOUD[Cloud Workloads] --> PROXY
+  PROXY --> PRI[(Primary Backup Repository)]
+  PRI --> IMM[(Immutable / Object-Lock Copy)]
+  PRI --> SEC[(Secondary Site / DR Copy)]
+  IMM --> VAULT[Isolated Recovery Vault]
+  SEC --> DR[DR Recovery Environment]
+  VAULT --> TEST[Restore Testing / Cyber Recovery]
+  CAT[Catalog / Policy / Monitoring] --- PROXY
+  CAT --- PRI
+  CAT --- IMM
+  CAT --- SEC
