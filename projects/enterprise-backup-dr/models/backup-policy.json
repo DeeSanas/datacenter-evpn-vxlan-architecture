@@ -1,0 +1,25 @@
+{
+  "policies": [
+    {
+      "name": "critical",
+      "backup_frequency_hours": 1,
+      "retention_days": 90,
+      "immutable_copy": true,
+      "secondary_copy": true
+    },
+    {
+      "name": "high",
+      "backup_frequency_hours": 6,
+      "retention_days": 60,
+      "immutable_copy": false,
+      "secondary_copy": true
+    },
+    {
+      "name": "standard",
+      "backup_frequency_hours": 24,
+      "retention_days": 30,
+      "immutable_copy": false,
+      "secondary_copy": true
+    }
+  ]
+}
