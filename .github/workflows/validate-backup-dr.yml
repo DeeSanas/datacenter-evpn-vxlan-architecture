@@ -1,0 +1,21 @@
+name: Validate Backup DR Project
+
+on:
+  push:
+    paths:
+      - "projects/enterprise-backup-dr/**"
+      - ".github/workflows/validate-backup-dr.yml"
+  pull_request:
+    paths:
+      - "projects/enterprise-backup-dr/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate backup policy
+        run: python projects/enterprise-backup-dr/scripts/check_backup_policy.py projects/enterprise-backup-dr/models/backup-policy.json
